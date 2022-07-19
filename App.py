@@ -13,8 +13,6 @@ from group import group
 from user import user
 from waitlist import waitlist
 
-
-
 # Set streamlit app config
 st.set_page_config(
     page_title="Real-Time Waitlist monitoring dashboard",
@@ -53,6 +51,7 @@ with placeholder.container():
 		# After complete set as available
 		if elapsed_time_percent >= 100:
 			st.session_state["bay1"].make_available()
+			st.session_state["waitlist"].update_waiting_times_session_end()
 
 
 	bay_2_status.subheader("Bay 2 status")
@@ -66,11 +65,14 @@ with placeholder.container():
 		my_bar = bay_2_status.progress(elapsed_time_percent)
 		if elapsed_time_percent == 100:
 			st.session_state["bay2"].make_available()
+			st.session_state["waitlist"].update_waiting_times_session_end()
 
+	placeholder_2 = st.empty()
 	# Step 2: Display existing waitlist as df for now - can refine later with separate rows maybe? like I did with the other project
 	if len(st.session_state["waitlist"].get_curr_waitlist()) > 0:
 		st.title("Current waitlist")
-		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
+		with placeholder_2.container():
+			st.table(st.session_state["waitlist"].waitlist_to_dataframe())
 		
 		# Step 2a: Somehow figure out how to move something to the bay - should be easy enough with agd grid? Maybe display 
 		# Move user to available bay
@@ -79,10 +81,16 @@ with placeholder.container():
 			if move:
 				g = st.session_state["waitlist"].remove_first_group()
 				st.session_state["waitlist"] = st.session_state["waitlist"]
+				elapsed_time = 0
 				if st.session_state["bay1"].is_available():
 					st.session_state["bay1"].occupy_bay(g.get_group_name())
+					elapsed_time = math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
 				else:
 					st.session_state["bay2"].occupy_bay(g.get_group_name())
+					elapsed_time = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
+				st.session_state["waitlist"].update_waiting_times(10-elapsed_time)
+				with placeholder_2.container():
+					st.table(st.session_state["waitlist"].waitlist_to_dataframe())
 				st.experimental_rerun()
 		else:
 			st.button("Move group to available bay", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
@@ -103,7 +111,8 @@ with placeholder.container():
 		submitted = st.form_submit_button("Join waitlist")
 		if submitted:
 			user1 = user(user1_firstname, user1_lastname, user1_email, user1_phone)
-			group1 = group(group_name, [user1])
+			waiting_time1 = st.session_state["waitlist"].get_curr_waiting_time()
+			group1 = group(group_name, [user1], waiting_time1)
 			st.session_state["waitlist"].add_group_to_waitlist(group1)
 			st.experimental_rerun()
 

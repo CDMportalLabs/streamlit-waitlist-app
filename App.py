@@ -113,23 +113,39 @@ with placeholder.container():
 		# Every form must have a submit button.
 		group_name = st.text_input("Group name")
 		st.text("Group members")
-		col1, col2, col3, col4 = st.columns(4)
-		user1_firstname = col1.text_input("First name")
-		user1_lastname = col2.text_input("Last name")
-		user1_email = col3.text_input("email")
-		user1_phone = col4.text_input("phone")
+		user1_col1, user1_col2, user1_col3, user1_col4 = st.columns(4)
+		user1_firstname = user1_col1.text_input("First name", key = "user1_first_name")
+		user1_lastname = user1_col2.text_input("Last name", key = "user1_last_name")
+		user1_email = user1_col3.text_input("email", key = "user1_email")
+		user1_phone = user1_col4.text_input("phone", key = "user1_phone")
 		
+		user2_col1, user2_col2, user2_col3, user2_col4 = st.columns(4)
+		user2_firstname = user2_col1.text_input("First name", key = "user2_first_name")
+		user2_lastname = user2_col2.text_input("Last name", key = "user2_last_name")
+		user2_email = user2_col3.text_input("email", key = "user2_email")
+		user2_phone = user2_col4.text_input("phone", key = "user2_phone")
+
+		user3_col1, user3_col2, user3_col3, user3_col4 = st.columns(4)
+		user3_firstname = user3_col1.text_input("First name", key = "user3_first_name")
+		user3_lastname = user3_col2.text_input("Last name", key = "user3_last_name")
+		user3_email = user3_col3.text_input("email", key = "user3_email")
+		user3_phone = user3_col4.text_input("phone", key = "user3_phone")
+
 		submitted = st.form_submit_button("Join waitlist")
 		if submitted:
 			user1 = user(user1_firstname, user1_lastname, user1_email, user1_phone)
-			firestore_db.collection(u'users').add({
-				u"firstName": user1_firstname,
-				u"lastName": user1_lastname,
-				u"email": user1_email,
-				u"phone": user1_phone
-			})
+			user2 = user(user2_firstname, user2_lastname, user2_email, user2_phone)
+			user3 = user(user3_firstname, user3_lastname, user3_email, user3_phone)
+			users = [user1, user2, user3]
+			for usr in users:		
+				firestore_db.collection(u'users').add({
+					u"firstName": usr.get_first_name(),
+					u"lastName": usr.get_last_name(),
+					u"email": usr.get_email(),
+					u"phone": usr.get_phone_number()
+				})
 			waiting_time1 = st.session_state["waitlist"].get_curr_waiting_time()
-			group1 = group(group_name, [user1], waiting_time1)
+			group1 = group(group_name, users, waiting_time1)
 			st.session_state["waitlist"].add_group_to_waitlist(group1)
 			st.experimental_rerun()
 

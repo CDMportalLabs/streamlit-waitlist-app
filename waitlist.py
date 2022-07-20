@@ -25,7 +25,7 @@ class waitlist:
 	def update_waiting_times(self, bay1RemainingTime, bay2RemainingTime):
 		for i, group in enumerate(self.waitlist):
 			if (i == 0):
-				group.update_waiting_time(min(bay1RemainingTime, bay2RemainingTime))
+				group.update_waiting_time(max(min(bay1RemainingTime, bay2RemainingTime), 0))
 			else:
 				if ((i-1) % 2 == 0):
 					group.update_waiting_time((i-1) * 10 + bay2RemainingTime)

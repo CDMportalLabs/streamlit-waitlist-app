@@ -75,9 +75,9 @@ with placeholder.container():
 			if (st.session_state["bay1"].is_available()):
 				st.session_state["waitlist"].update_waiting_times_session_end()
 
-	st.title("Current waitlist")
 	# Step 2: Display existing waitlist as df for now - can refine later with separate rows maybe? like I did with the other project
 	if len(st.session_state["waitlist"].get_curr_waitlist()) > 0:
+		st.title("Current waitlist")
 		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
 	
 		# Step 2a: Somehow figure out how to move something to the bay - should be easy enough with agd grid? Maybe display 

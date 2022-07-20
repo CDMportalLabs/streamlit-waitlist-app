@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import time
 import math
+from firebase_admin import initialize_app, delete_app, get_app
+from firebase_admin import credentials, firestore
 
 # Import data model
 from bay import bay
@@ -18,6 +20,15 @@ st.set_page_config(
     page_title="Real-Time Waitlist monitoring dashboard",
     layout="wide"
 )
+
+# initialize sdk
+cred = credentials.Certificate("./serviceAccountKey.json")
+try:
+    default_app = get_app()
+except ValueError:
+    default_app = initialize_app(cred)
+# initialize firestore instance
+firestore_db = firestore.client()
 
 # Run the autorefresh about every 2000 milliseconds (2 seconds) and stop
 # after it's been refreshed 100 times.
@@ -111,9 +122,18 @@ with placeholder.container():
 		submitted = st.form_submit_button("Join waitlist")
 		if submitted:
 			user1 = user(user1_firstname, user1_lastname, user1_email, user1_phone)
+			firestore_db.collection(u'users').add({
+				u"firstName": user1_firstname,
+				u"lastName": user1_lastname,
+				u"email": user1_email,
+				u"phone": user1_phone
+			})
 			waiting_time1 = st.session_state["waitlist"].get_curr_waiting_time()
 			group1 = group(group_name, [user1], waiting_time1)
 			st.session_state["waitlist"].add_group_to_waitlist(group1)
 			st.experimental_rerun()
 
-
+try:
+    delete_app(default_app)
+except ValueError:
+    pass

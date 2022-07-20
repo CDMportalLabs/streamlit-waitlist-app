@@ -17,7 +17,7 @@ class group:
 	def get_timestamps(self):
 		return self.timestamp
 	
-	def get_waiting_times(self):
+	def get_waiting_time(self):
 		return self.waiting_time
 
 	def update_waiting_time(self, time):

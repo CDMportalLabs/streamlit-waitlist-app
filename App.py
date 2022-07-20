@@ -37,6 +37,7 @@ with placeholder.container():
 # Step 1: Display bays with their current status
 	st.title("Uncontained VR operator console")
 	bay_1_status, bay_2_status = st.columns(2)
+	elapsed_time_1, elapsed_time_2 = None, None
 
 	bay_1_status.subheader("Bay 1 status")
 	if st.session_state["bay1"].is_available():
@@ -44,14 +45,14 @@ with placeholder.container():
 	else:
 		bay_1_status.error(f"In session. In use by group: {st.session_state['bay1'].get_curr_group()}")
 		# Elapsed time in seconds
-		elapsed_time =  math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
-		elapsed_time_percent = elapsed_time * 10 if elapsed_time <= 10 else 100
-		bay_1_status.text(f"Time remaining: {10-elapsed_time} seconds")
+		elapsed_time_1 = math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
+		elapsed_time_percent_1 = elapsed_time_1 * 10 if elapsed_time_1 <= 10 else 100
+		bay_1_status.text(f"Time remaining: {10-elapsed_time_1} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
-			st.session_state["waitlist"].update_waiting_times(10-elapsed_time)
-		my_bar = bay_1_status.progress(elapsed_time_percent)
+			st.session_state["waitlist"].update_waiting_times(10-elapsed_time_1)
+		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
-		if elapsed_time_percent >= 100:
+		if elapsed_time_percent_1 >= 100:
 			st.session_state["bay1"].make_available()
 			st.session_state["waitlist"].update_waiting_times_session_end()
 
@@ -61,13 +62,14 @@ with placeholder.container():
 		bay_2_status.success("Available")
 	else:
 		bay_2_status.error(f"In session. In use by group: {st.session_state['bay2'].get_curr_group()}")
-		elapsed_time = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
-		elapsed_time_percent = elapsed_time * 10 if elapsed_time <= 10 else 100
-		bay_2_status.text(f"Time remaining: {10-elapsed_time} seconds")
+		elapsed_time_2 = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
+		elapsed_time_percent_2 = elapsed_time_2 * 10 if elapsed_time_2 <= 10 else 100
+		bay_2_status.text(f"Time remaining: {10-elapsed_time_2} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
-			st.session_state["waitlist"].update_waiting_times(10-elapsed_time)
-		my_bar = bay_2_status.progress(elapsed_time_percent)
-		if elapsed_time_percent == 100:
+			if (elapsed_time_1 != None):
+				st.session_state["waitlist"].update_waiting_times(min(10-elapsed_time_2, 10-elapsed_time_1))
+		my_bar = bay_2_status.progress(elapsed_time_percent_2)
+		if elapsed_time_percent_2 == 100:
 			st.session_state["bay2"].make_available()
 			st.session_state["waitlist"].update_waiting_times_session_end()
 

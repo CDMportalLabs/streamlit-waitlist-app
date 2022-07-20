@@ -15,21 +15,23 @@ class waitlist:
 		group = self.waitlist.pop(0)
 		return group
 	
-	def update_waiting_times_session_start(self):
-		for i, group in enumerate(self.waitlist):
-			group.update_waiting_time((i+1) * 10)
-	
 	def update_waiting_times_session_end(self):
 		for i, group in enumerate(self.waitlist):
-			group.update_waiting_time(i * 10)
+			if (i == 0):
+				group.update_waiting_time(0)
+			else:
+				group.update_waiting_time((i-1) * 10)
 	
-	def update_waiting_times(self, bayRemainingTime):
+	def update_waiting_times(self, bay1RemainingTime, bay2RemainingTime):
 		for i, group in enumerate(self.waitlist):
-			group.update_waiting_time(i * 10 + bayRemainingTime)
+			if (i == 0):
+				group.update_waiting_time(bay1RemainingTime)
+			else:
+				group.update_waiting_time((i-1) * 10 + bay2RemainingTime)
 
 	def get_curr_waiting_time(self):
 		# will be replaced with (bay remaining time + waitlist length * 15)
-		return len(self.waitlist) * 10
+		return (len(self.waitlist)-1) * 10 if len(self.waitlist) >= 1 else 0 
 	
 	def get_waiting_times(self):
 		return [group.get_waiting_times() for group in self.waitlist]

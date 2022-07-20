@@ -37,7 +37,7 @@ with placeholder.container():
 # Step 1: Display bays with their current status
 	st.title("Uncontained VR operator console")
 	bay_1_status, bay_2_status = st.columns(2)
-	elapsed_time_1, elapsed_time_2 = None, None
+	elapsed_time_1, elapsed_time_2 = 0, 0
 
 	bay_1_status.subheader("Bay 1 status")
 	if st.session_state["bay1"].is_available():
@@ -48,13 +48,12 @@ with placeholder.container():
 		elapsed_time_1 = math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
 		elapsed_time_percent_1 = elapsed_time_1 * 10 if elapsed_time_1 <= 10 else 100
 		bay_1_status.text(f"Time remaining: {10-elapsed_time_1} seconds")
-		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
-			st.session_state["waitlist"].update_waiting_times(10-elapsed_time_1)
 		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
 		if elapsed_time_percent_1 >= 100:
 			st.session_state["bay1"].make_available()
-			st.session_state["waitlist"].update_waiting_times_session_end()
+			if (st.session_state["bay2"].is_available()):
+				st.session_state["waitlist"].update_waiting_times_session_end()
 
 
 	bay_2_status.subheader("Bay 2 status")
@@ -66,12 +65,15 @@ with placeholder.container():
 		elapsed_time_percent_2 = elapsed_time_2 * 10 if elapsed_time_2 <= 10 else 100
 		bay_2_status.text(f"Time remaining: {10-elapsed_time_2} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
-			if (elapsed_time_1 != None):
-				st.session_state["waitlist"].update_waiting_times(min(10-elapsed_time_2, 10-elapsed_time_1))
+			if (elapsed_time_1 > 0):
+				st.session_state["waitlist"].update_waiting_times(10-elapsed_time_1, 10-elapsed_time_2)
+			elif(elapsed_time_1 == 0):
+				st.session_state["waitlist"].update_waiting_times(0, 10-elapsed_time_2)
 		my_bar = bay_2_status.progress(elapsed_time_percent_2)
 		if elapsed_time_percent_2 == 100:
 			st.session_state["bay2"].make_available()
-			st.session_state["waitlist"].update_waiting_times_session_end()
+			if (st.session_state["bay1"].is_available()):
+				st.session_state["waitlist"].update_waiting_times_session_end()
 
 st.title("Current waitlist")
 placeholder_2 = st.empty()

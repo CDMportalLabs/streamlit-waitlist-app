@@ -47,6 +47,8 @@ with placeholder.container():
 		elapsed_time =  math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
 		elapsed_time_percent = elapsed_time * 10 if elapsed_time <= 10 else 100
 		bay_1_status.text(f"Time remaining: {10-elapsed_time} seconds")
+		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
+			st.session_state["waitlist"].update_waiting_times(10-elapsed_time)
 		my_bar = bay_1_status.progress(elapsed_time_percent)
 		# After complete set as available
 		if elapsed_time_percent >= 100:
@@ -62,18 +64,20 @@ with placeholder.container():
 		elapsed_time = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
 		elapsed_time_percent = elapsed_time * 10 if elapsed_time <= 10 else 100
 		bay_2_status.text(f"Time remaining: {10-elapsed_time} seconds")
+		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
+			st.session_state["waitlist"].update_waiting_times(10-elapsed_time)
 		my_bar = bay_2_status.progress(elapsed_time_percent)
 		if elapsed_time_percent == 100:
 			st.session_state["bay2"].make_available()
 			st.session_state["waitlist"].update_waiting_times_session_end()
 
-	placeholder_2 = st.empty()
-	# Step 2: Display existing waitlist as df for now - can refine later with separate rows maybe? like I did with the other project
+st.title("Current waitlist")
+placeholder_2 = st.empty()
+# Step 2: Display existing waitlist as df for now - can refine later with separate rows maybe? like I did with the other project
+with placeholder_2.container():
 	if len(st.session_state["waitlist"].get_curr_waitlist()) > 0:
-		st.title("Current waitlist")
-		with placeholder_2.container():
-			st.table(st.session_state["waitlist"].waitlist_to_dataframe())
-		
+		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
+	
 		# Step 2a: Somehow figure out how to move something to the bay - should be easy enough with agd grid? Maybe display 
 		# Move user to available bay
 		if st.session_state.bay1.is_available() or st.session_state.bay2.is_available():
@@ -81,39 +85,33 @@ with placeholder.container():
 			if move:
 				g = st.session_state["waitlist"].remove_first_group()
 				st.session_state["waitlist"] = st.session_state["waitlist"]
-				elapsed_time = 0
 				if st.session_state["bay1"].is_available():
 					st.session_state["bay1"].occupy_bay(g.get_group_name())
-					elapsed_time = math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
 				else:
 					st.session_state["bay2"].occupy_bay(g.get_group_name())
-					elapsed_time = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
-				st.session_state["waitlist"].update_waiting_times(10-elapsed_time)
-				with placeholder_2.container():
-					st.table(st.session_state["waitlist"].waitlist_to_dataframe())
 				st.experimental_rerun()
 		else:
 			st.button("Move group to available bay", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 
 
-	# Step 3: Add option to add group to waitlist (streamlit form works just fine heres)
-	with st.form(key="my_form"):
-		st.subheader("Sign up for waitlist")		
-		# Every form must have a submit button.
-		group_name = st.text_input("Group name")
-		st.text("Group members")
-		col1, col2, col3, col4 = st.columns(4)
-		user1_firstname = col1.text_input("First name")
-		user1_lastname = col2.text_input("Last name")
-		user1_email = col3.text_input("email")
-		user1_phone = col4.text_input("phone")
-		
-		submitted = st.form_submit_button("Join waitlist")
-		if submitted:
-			user1 = user(user1_firstname, user1_lastname, user1_email, user1_phone)
-			waiting_time1 = st.session_state["waitlist"].get_curr_waiting_time()
-			group1 = group(group_name, [user1], waiting_time1)
-			st.session_state["waitlist"].add_group_to_waitlist(group1)
-			st.experimental_rerun()
+# Step 3: Add option to add group to waitlist (streamlit form works just fine heres)
+with st.form(key="my_form"):
+	st.subheader("Sign up for waitlist")		
+	# Every form must have a submit button.
+	group_name = st.text_input("Group name")
+	st.text("Group members")
+	col1, col2, col3, col4 = st.columns(4)
+	user1_firstname = col1.text_input("First name")
+	user1_lastname = col2.text_input("Last name")
+	user1_email = col3.text_input("email")
+	user1_phone = col4.text_input("phone")
+	
+	submitted = st.form_submit_button("Join waitlist")
+	if submitted:
+		user1 = user(user1_firstname, user1_lastname, user1_email, user1_phone)
+		waiting_time1 = st.session_state["waitlist"].get_curr_waiting_time()
+		group1 = group(group_name, [user1], waiting_time1)
+		st.session_state["waitlist"].add_group_to_waitlist(group1)
+		st.experimental_rerun()
 
 

@@ -1,5 +1,6 @@
-
 import pandas as pd
+import time
+import datetime
 
 class waitlist:
 
@@ -12,8 +13,31 @@ class waitlist:
 	
 	def remove_first_group(self):
 		group = self.waitlist.pop(0)
-		
 		return group
+	
+	def update_waiting_times_session_end(self):
+		for i, group in enumerate(self.waitlist):
+			if (i == 0):
+				group.update_waiting_time(0)
+			else:
+				group.update_waiting_time((i-1) * 10)
+	
+	def update_waiting_times(self, bay1RemainingTime, bay2RemainingTime):
+		for i, group in enumerate(self.waitlist):
+			if (i == 0):
+				group.update_waiting_time(min(bay1RemainingTime, bay2RemainingTime))
+			else:
+				if ((i-1) % 2 == 0):
+					group.update_waiting_time((i-1) * 10 + bay2RemainingTime)
+				else:
+					group.update_waiting_time((i-1) * 10 + bay1RemainingTime)
+
+	def get_curr_waiting_time(self):
+		# will be replaced with (bay remaining time + waitlist length * 15)
+		return (len(self.waitlist)-1) * 10 if len(self.waitlist) >= 1 else 0 
+	
+	def get_waiting_times(self):
+		return [group.get_waiting_times() for group in self.waitlist]
 	
 	def add_group_to_waitlist(self, group):
 		self.waitlist.append(group)
@@ -23,6 +47,7 @@ class waitlist:
 		group_names = [group.get_group_name() for group in self.waitlist]
 		group_times = [group.get_timestamps() for group in self.waitlist]
 		group_members = [group.get_members() for group in self.waitlist]
+		group_waiting_times = [group.get_waiting_times() for group in self.waitlist]
 		group_members_names = []
 		group_members_phones = []
 		group_members_emails = []
@@ -31,8 +56,7 @@ class waitlist:
 			group_members_phones.append([f'{member.get_phone_number()}' for member in group])
 			group_members_emails.append([f'{member.get_email()}' for member in group])
 		
-		
-		return pd.DataFrame({'Group Name': group_names, 'Group Time': group_times, 'Group Members': group_members_names, 'Group Members Phone': group_members_phones, 'Group Members Email': group_members_emails})
+		return pd.DataFrame({'Group Name': group_names, 'Group Time': group_times, 'Group Members': group_members_names, 'Group Members Phone': group_members_phones, 'Group Members Email': group_members_emails, 'Group Waiting Time': group_waiting_times})
 	
 	
 		

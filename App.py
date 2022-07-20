@@ -13,8 +13,6 @@ from group import group
 from user import user
 from waitlist import waitlist
 
-
-
 # Set streamlit app config
 st.set_page_config(
     page_title="Real-Time Waitlist monitoring dashboard",
@@ -39,6 +37,7 @@ with placeholder.container():
 # Step 1: Display bays with their current status
 	st.title("Uncontained VR operator console")
 	bay_1_status, bay_2_status = st.columns(2)
+	elapsed_time_1, elapsed_time_2 = 0, 0
 
 	bay_1_status.subheader("Bay 1 status")
 	if st.session_state["bay1"].is_available():
@@ -46,13 +45,15 @@ with placeholder.container():
 	else:
 		bay_1_status.error(f"In session. In use by group: {st.session_state['bay1'].get_curr_group()}")
 		# Elapsed time in seconds
-		elapsed_time =  math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
-		elapsed_time_percent = elapsed_time * 10 if elapsed_time <= 10 else 100
-		bay_1_status.text(f"Time remaining: {10-elapsed_time} seconds")
-		my_bar = bay_1_status.progress(elapsed_time_percent)
+		elapsed_time_1 = math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
+		elapsed_time_percent_1 = elapsed_time_1 * 10 if elapsed_time_1 <= 10 else 100
+		bay_1_status.text(f"Time remaining: {10-elapsed_time_1} seconds")
+		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
-		if elapsed_time_percent >= 100:
+		if elapsed_time_percent_1 >= 100:
 			st.session_state["bay1"].make_available()
+			if (st.session_state["bay2"].is_available()):
+				st.session_state["waitlist"].update_waiting_times_session_end()
 
 
 	bay_2_status.subheader("Bay 2 status")
@@ -60,18 +61,25 @@ with placeholder.container():
 		bay_2_status.success("Available")
 	else:
 		bay_2_status.error(f"In session. In use by group: {st.session_state['bay2'].get_curr_group()}")
-		elapsed_time = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
-		elapsed_time_percent = elapsed_time * 10 if elapsed_time <= 10 else 100
-		bay_2_status.text(f"Time remaining: {10-elapsed_time} seconds")
-		my_bar = bay_2_status.progress(elapsed_time_percent)
-		if elapsed_time_percent == 100:
+		elapsed_time_2 = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
+		elapsed_time_percent_2 = elapsed_time_2 * 10 if elapsed_time_2 <= 10 else 100
+		bay_2_status.text(f"Time remaining: {10-elapsed_time_2} seconds")
+		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
+			if (elapsed_time_1 > 0):
+				st.session_state["waitlist"].update_waiting_times(10-elapsed_time_1, 10-elapsed_time_2)
+			elif(elapsed_time_1 == 0):
+				st.session_state["waitlist"].update_waiting_times(0, 10-elapsed_time_2)
+		my_bar = bay_2_status.progress(elapsed_time_percent_2)
+		if elapsed_time_percent_2 == 100:
 			st.session_state["bay2"].make_available()
+			if (st.session_state["bay1"].is_available()):
+				st.session_state["waitlist"].update_waiting_times_session_end()
 
 	# Step 2: Display existing waitlist as df for now - can refine later with separate rows maybe? like I did with the other project
 	if len(st.session_state["waitlist"].get_curr_waitlist()) > 0:
 		st.title("Current waitlist")
 		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
-		
+	
 		# Step 2a: Somehow figure out how to move something to the bay - should be easy enough with agd grid? Maybe display 
 		# Move user to available bay
 		if st.session_state.bay1.is_available() or st.session_state.bay2.is_available():
@@ -103,7 +111,8 @@ with placeholder.container():
 		submitted = st.form_submit_button("Join waitlist")
 		if submitted:
 			user1 = user(user1_firstname, user1_lastname, user1_email, user1_phone)
-			group1 = group(group_name, [user1])
+			waiting_time1 = st.session_state["waitlist"].get_curr_waiting_time()
+			group1 = group(group_name, [user1], waiting_time1)
 			st.session_state["waitlist"].add_group_to_waitlist(group1)
 			st.experimental_rerun()
 

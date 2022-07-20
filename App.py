@@ -47,7 +47,7 @@ with placeholder.container():
 		# Elapsed time in seconds
 		elapsed_time_1 = math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))
 		elapsed_time_percent_1 = elapsed_time_1 * 10 if elapsed_time_1 <= 10 else 100
-		bay_1_status.text(f"Time remaining: {10-elapsed_time_1} seconds")
+		bay_1_status.text(f"Time remaining: {max(10-elapsed_time_1, 0)} seconds")
 		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
 		if elapsed_time_percent_1 >= 100:
@@ -63,7 +63,7 @@ with placeholder.container():
 		bay_2_status.error(f"In session. In use by group: {st.session_state['bay2'].get_curr_group()}")
 		elapsed_time_2 = math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
 		elapsed_time_percent_2 = elapsed_time_2 * 10 if elapsed_time_2 <= 10 else 100
-		bay_2_status.text(f"Time remaining: {10-elapsed_time_2} seconds")
+		bay_2_status.text(f"Time remaining: {max(10-elapsed_time_2, 0)} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
 			if (elapsed_time_1 > 0):
 				st.session_state["waitlist"].update_waiting_times(10-elapsed_time_1, 10-elapsed_time_2)
@@ -75,26 +75,50 @@ with placeholder.container():
 			if (st.session_state["bay1"].is_available()):
 				st.session_state["waitlist"].update_waiting_times_session_end()
 
-	# Step 2: Display existing waitlist as df for now - can refine later with separate rows maybe? like I did with the other project
+	# Step 2: Display existing waitlist as df for now
 	if len(st.session_state["waitlist"].get_curr_waitlist()) > 0:
-		st.title("Current waitlist")
+		st.subheader("Current waitlist")
 		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
 	
-		# Step 2a: Somehow figure out how to move something to the bay - should be easy enough with agd grid? Maybe display 
-		# Move user to available bay
+		# Step 2a: Move user to available bay
 		if st.session_state.bay1.is_available() or st.session_state.bay2.is_available():
-			move = st.button("Move group to available bay")
-			if move:
-				g = st.session_state["waitlist"].remove_first_group()
-				st.session_state["waitlist"] = st.session_state["waitlist"]
-				if st.session_state["bay1"].is_available():
-					st.session_state["bay1"].occupy_bay(g.get_group_name())
-				else:
-					st.session_state["bay2"].occupy_bay(g.get_group_name())
-				st.experimental_rerun()
+			b1, b2, b3, _, _, _, _, _= st.columns(8)
+			if st.session_state.bay1.is_available():
+				move_bay1 = b1.button("Move to bay 1")
+				if move_bay1:
+					# Move to bay 1
+					g = st.session_state["waitlist"].remove_first_group()
+					st.session_state["bay1"].occupy_bay(g.get_group_name())	
+			else:
+				move_bay1 = b1.button("Move to bay 1", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
+			if st.session_state.bay2.is_available():
+				move_bay2 = b2.button("Move to bay 2")
+				if move_bay2:
+					# Move to bay 2
+					g = st.session_state["waitlist"].remove_first_group()
+					st.session_state["bay2"].occupy_bay(g.get_group_name())	
+			else:
+				move_bay2 = b2.button("Move to bay 2", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
+			if len(st.session_state["waitlist"].get_curr_waitlist()) > 1:
+				move_to_end = b3.button("Move to end of waitlist")
+				if move_to_end:
+					g = st.session_state["waitlist"].remove_first_group()
+					st.session_state["waitlist"].add_group_to_waitlist(g)
+					bay1_remaining_time = 0 
+					if not st.session_state["bay1"].is_available():
+						bay1_remaining_time = 10 - math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))	
+					bay2_remaining_time = 0
+					if not st.session_state["bay2"].is_available():
+						bay2_remaining_time = 10 - math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
+					st.session_state["waitlist"].update_waiting_times(bay1_remaining_time, bay2_remaining_time)
+					st.experimental_rerun()
+			else:
+				move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 		else:
-			st.button("Move group to available bay", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
-
+			b1, b2, b3, _, _, _, _, _= st.columns(8)
+			move_bay1 = b1.button("Move to bay 1", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
+			move_bay2 = b2.button("Move to bay 2", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
+			move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 
 	# Step 3: Add option to add group to waitlist (streamlit form works just fine heres)
 	with st.form(key="my_form"):

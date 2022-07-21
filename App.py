@@ -70,16 +70,44 @@ with placeholder.container():
 		elapsed_time_percent_1 = (elapsed_time_1 * 100)//15 if elapsed_time_1 <= 15 else 100
 		if elapsed_time_1 <= 5:
 			bay_1_status.text(f"Current stage: In waiting area")
+			st.markdown(
+				"""
+				<style>
+					.stProgress > div > div > div > div {
+						background-color: green;
+					}
+				</style>""",
+				unsafe_allow_html=True,
+			)
 		elif elapsed_time_1 <= 10:
 			bay_1_status.text(f"Current stage: Onboarding")
+			st.markdown(
+				"""
+				<style>
+					.stProgress > div > div > div > div {
+						background-color: yellow;
+					}
+				</style>""",
+				unsafe_allow_html=True,
+			)
 		else:
 			bay_1_status.text(f"Current stage: In-game")
+			st.markdown(
+				"""
+				<style>
+					.stProgress > div > div > div > div {
+						background-color: red;
+					}
+				</style>""",
+				unsafe_allow_html=True,
+			)
 		bay_1_status.text(f"Time remaining: {max(15-elapsed_time_1, 0)} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
 			if (elapsed_time_2 > 0):
 				st.session_state["waitlist"].update_waiting_times(15-elapsed_time_2, 15-elapsed_time_1)
 			elif(elapsed_time_2 == 0):
 				st.session_state["waitlist"].update_waiting_times(0, 15-elapsed_time_1)
+
 		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
 		if elapsed_time_percent_1 >= 100:
@@ -97,10 +125,37 @@ with placeholder.container():
 		elapsed_time_percent_2 = (elapsed_time_2 * 100//15) if elapsed_time_2 <= 15 else 100
 		if elapsed_time_2 <= 5:
 			bay_2_status.text(f"Current stage: In waiting area")
+			st.markdown(
+				"""
+				<style>
+					.stProgress > div > div > div > div {
+						background-color: green;
+					}
+				</style>""",
+				unsafe_allow_html=True,
+			)
 		elif elapsed_time_2 <= 10:
 			bay_2_status.text(f"Current stage: Onboarding")
+			st.markdown(
+				"""
+				<style>
+					.stProgress > div > div > div > div {
+						background-color: yellow;
+					}
+				</style>""",
+				unsafe_allow_html=True,
+			)
 		else:
 			bay_2_status.text(f"Current stage: In-game")
+			st.markdown(
+				"""
+				<style>
+					.stProgress > div > div > div > div {
+						background-color: red;
+					}
+				</style>""",
+				unsafe_allow_html=True,
+			)
 		bay_2_status.text(f"Time remaining: {max(15-elapsed_time_2, 0)} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
 			if (elapsed_time_1 > 0):

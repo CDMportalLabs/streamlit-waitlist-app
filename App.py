@@ -32,7 +32,7 @@ st.set_page_config(
 
 # Run the autorefresh about every 2000 milliseconds (2 seconds) and stop
 # after it's been refreshed 100 times.
-count = st_autorefresh(interval=1500, key="fizzbuzzcounter")
+count = st_autorefresh(interval=1000, key="fizzbuzzcounter")
 
 # Initialize bays if they don't already exist
 if "bay1" not in st.session_state:
@@ -66,14 +66,20 @@ with placeholder.container():
 	else:
 		bay_1_status.error(f"In session. In use by group: {st.session_state['bay1'].get_curr_group()}")
 		# Elapsed time in seconds
-		elapsed_time_1 = min(math.floor((time.time() - st.session_state["bay1"].get_session_start_time())), 10)
-		elapsed_time_percent_1 = elapsed_time_1 * 10 if elapsed_time_1 <= 10 else 100
-		bay_1_status.text(f"Time remaining: {max(10-elapsed_time_1, 0)} seconds")
+		elapsed_time_1 = min(math.floor((time.time() - st.session_state["bay1"].get_session_start_time())), 15)
+		elapsed_time_percent_1 = (elapsed_time_1 * 100)//15 if elapsed_time_1 <= 15 else 100
+		if elapsed_time_1 <= 5:
+			bay_1_status.text(f"Current stage: In waiting area")
+		elif elapsed_time_1 <= 10:
+			bay_1_status.text(f"Current stage: Onboarding")
+		else:
+			bay_1_status.text(f"Current stage: In-game")
+		bay_1_status.text(f"Time remaining: {max(15-elapsed_time_1, 0)} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
 			if (elapsed_time_2 > 0):
-				st.session_state["waitlist"].update_waiting_times(10-elapsed_time_2, 10-elapsed_time_1)
+				st.session_state["waitlist"].update_waiting_times(15-elapsed_time_2, 15-elapsed_time_1)
 			elif(elapsed_time_2 == 0):
-				st.session_state["waitlist"].update_waiting_times(0, 10-elapsed_time_1)
+				st.session_state["waitlist"].update_waiting_times(0, 15-elapsed_time_1)
 		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
 		if elapsed_time_percent_1 >= 100:
@@ -87,14 +93,20 @@ with placeholder.container():
 		bay_2_status.success("Available")
 	else:
 		bay_2_status.error(f"In session. In use by group: {st.session_state['bay2'].get_curr_group()}")
-		elapsed_time_2 = min(math.floor((time.time() - st.session_state["bay2"].get_session_start_time())), 10)
-		elapsed_time_percent_2 = elapsed_time_2 * 10 if elapsed_time_2 <= 10 else 100
-		bay_2_status.text(f"Time remaining: {max(10-elapsed_time_2, 0)} seconds")
+		elapsed_time_2 = min(math.floor((time.time() - st.session_state["bay2"].get_session_start_time())), 15)
+		elapsed_time_percent_2 = (elapsed_time_2 * 100//15) if elapsed_time_2 <= 15 else 100
+		if elapsed_time_2 <= 5:
+			bay_2_status.text(f"Current stage: In waiting area")
+		elif elapsed_time_2 <= 10:
+			bay_2_status.text(f"Current stage: Onboarding")
+		else:
+			bay_2_status.text(f"Current stage: In-game")
+		bay_2_status.text(f"Time remaining: {max(15-elapsed_time_2, 0)} seconds")
 		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
 			if (elapsed_time_1 > 0):
-				st.session_state["waitlist"].update_waiting_times(10-elapsed_time_1, 10-elapsed_time_2)
+				st.session_state["waitlist"].update_waiting_times(15-elapsed_time_1, 15-elapsed_time_2)
 			elif(elapsed_time_1 == 0):
-				st.session_state["waitlist"].update_waiting_times(0, 10-elapsed_time_2)
+				st.session_state["waitlist"].update_waiting_times(0, 15-elapsed_time_2)
 		my_bar = bay_2_status.progress(elapsed_time_percent_2)
 		if elapsed_time_percent_2 == 100:
 			st.session_state["bay2"].make_available()
@@ -107,11 +119,11 @@ with placeholder.container():
 		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
 		bay1_remaining_time = 0 
 		if not st.session_state["bay1"].is_available():
-				bay1_remaining_time = 10 - math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))	
+				bay1_remaining_time = 15 - math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))	
 				bay2_remaining_time = 0
 		bay2_remaining_time = 0
 		if not st.session_state["bay2"].is_available():
-				bay2_remaining_time = 10 - math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
+				bay2_remaining_time = 15 - math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
 	
 		# Step 2a: Move user to available bay
 		if st.session_state.bay1.is_available() or st.session_state.bay2.is_available():

@@ -79,6 +79,12 @@ with placeholder.container():
 	if len(st.session_state["waitlist"].get_curr_waitlist()) > 0:
 		st.subheader("Current waitlist")
 		st.table(st.session_state["waitlist"].waitlist_to_dataframe())
+		bay1_remaining_time = 0 
+		if not st.session_state["bay1"].is_available():
+				bay1_remaining_time = 10 - math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))	
+				bay2_remaining_time = 0
+		if not st.session_state["bay2"].is_available():
+				bay2_remaining_time = 10 - math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
 	
 		# Step 2a: Move user to available bay
 		if st.session_state.bay1.is_available() or st.session_state.bay2.is_available():
@@ -104,21 +110,21 @@ with placeholder.container():
 				if move_to_end:
 					g = st.session_state["waitlist"].remove_first_group()
 					st.session_state["waitlist"].add_group_to_waitlist(g)
-					bay1_remaining_time = 0 
-					if not st.session_state["bay1"].is_available():
-						bay1_remaining_time = 10 - math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))	
-					bay2_remaining_time = 0
-					if not st.session_state["bay2"].is_available():
-						bay2_remaining_time = 10 - math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
 					st.session_state["waitlist"].update_waiting_times(bay1_remaining_time, bay2_remaining_time)
-					st.experimental_rerun()
 			else:
 				move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 		else:
 			b1, b2, b3, _, _, _, _, _= st.columns(8)
 			move_bay1 = b1.button("Move to bay 1", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 			move_bay2 = b2.button("Move to bay 2", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
-			move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
+			if len(st.session_state["waitlist"].get_curr_waitlist()) > 1:
+				move_to_end = b3.button("Move to end of waitlist")
+				if move_to_end:
+					g = st.session_state["waitlist"].remove_first_group()
+					st.session_state["waitlist"].add_group_to_waitlist(g)
+					st.session_state["waitlist"].update_waiting_times(bay1_remaining_time, bay2_remaining_time)
+			else:
+					move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 
 	# Step 3: Add option to add group to waitlist (streamlit form works just fine heres)
 	with st.form(key="my_form"):

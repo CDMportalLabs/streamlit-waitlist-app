@@ -112,6 +112,7 @@ with placeholder.container():
 		# After complete set as available
 		if elapsed_time_percent_1 >= 100:
 			st.session_state["bay1"].make_available()
+			st.balloons()
 			if (st.session_state["bay2"].is_available()):
 				st.session_state["waitlist"].update_waiting_times_session_end()
 
@@ -165,6 +166,7 @@ with placeholder.container():
 		my_bar = bay_2_status.progress(elapsed_time_percent_2)
 		if elapsed_time_percent_2 == 100:
 			st.session_state["bay2"].make_available()
+			st.balloons()
 			if (st.session_state["bay1"].is_available()):
 				st.session_state["waitlist"].update_waiting_times_session_end()
 

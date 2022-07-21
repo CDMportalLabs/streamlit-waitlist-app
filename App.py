@@ -69,6 +69,11 @@ with placeholder.container():
 		elapsed_time_1 = min(math.floor((time.time() - st.session_state["bay1"].get_session_start_time())), 10)
 		elapsed_time_percent_1 = elapsed_time_1 * 10 if elapsed_time_1 <= 10 else 100
 		bay_1_status.text(f"Time remaining: {max(10-elapsed_time_1, 0)} seconds")
+		if (len(st.session_state["waitlist"].get_curr_waitlist()) > 0):
+			if (elapsed_time_2 > 0):
+				st.session_state["waitlist"].update_waiting_times(10-elapsed_time_2, 10-elapsed_time_1)
+			elif(elapsed_time_2 == 0):
+				st.session_state["waitlist"].update_waiting_times(0, 10-elapsed_time_1)
 		my_bar = bay_1_status.progress(elapsed_time_percent_1)
 		# After complete set as available
 		if elapsed_time_percent_1 >= 100:

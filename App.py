@@ -32,7 +32,7 @@ st.set_page_config(
 
 # Run the autorefresh about every 2000 milliseconds (2 seconds) and stop
 # after it's been refreshed 100 times.
-count = st_autorefresh(interval=1000, key="fizzbuzzcounter")
+count = st_autorefresh(interval=1500, key="fizzbuzzcounter")
 
 # Initialize bays if they don't already exist
 if "bay1" not in st.session_state:
@@ -104,6 +104,7 @@ with placeholder.container():
 		if not st.session_state["bay1"].is_available():
 				bay1_remaining_time = 10 - math.floor((time.time() - st.session_state["bay1"].get_session_start_time()))	
 				bay2_remaining_time = 0
+		bay2_remaining_time = 0
 		if not st.session_state["bay2"].is_available():
 				bay2_remaining_time = 10 - math.floor((time.time() - st.session_state["bay2"].get_session_start_time()))
 	
@@ -116,6 +117,7 @@ with placeholder.container():
 					# Move to bay 1
 					g = st.session_state["waitlist"].remove_first_group()
 					st.session_state["bay1"].occupy_bay(g.get_group_name())	
+					st.experimental_rerun()
 			else:
 				move_bay1 = b1.button("Move to bay 1", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 			if st.session_state.bay2.is_available():
@@ -124,6 +126,7 @@ with placeholder.container():
 					# Move to bay 2
 					g = st.session_state["waitlist"].remove_first_group()
 					st.session_state["bay2"].occupy_bay(g.get_group_name())	
+					st.experimental_rerun()
 			else:
 				move_bay2 = b2.button("Move to bay 2", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 			if len(st.session_state["waitlist"].get_curr_waitlist()) > 1:
@@ -132,6 +135,7 @@ with placeholder.container():
 					g = st.session_state["waitlist"].remove_first_group()
 					st.session_state["waitlist"].add_group_to_waitlist(g)
 					st.session_state["waitlist"].update_waiting_times(bay1_remaining_time, bay2_remaining_time)
+					st.experimental_rerun()
 			else:
 				move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 		else:
@@ -144,6 +148,7 @@ with placeholder.container():
 					g = st.session_state["waitlist"].remove_first_group()
 					st.session_state["waitlist"].add_group_to_waitlist(g)
 					st.session_state["waitlist"].update_waiting_times(bay1_remaining_time, bay2_remaining_time)
+					st.experimental_rerun()
 			else:
 					move_to_end = b3.button("Move to end of waitlist", key=None, help=None, on_click=None, args=None, kwargs=None, disabled=True)
 
